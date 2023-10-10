@@ -1,8 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
-import { Model, Types as MongooseTypes } from 'mongoose'
-import { User } from '../users/schemas/user.schema'
 import { JwtService } from '@nestjs/jwt'
+
+type authJWTPayload = { id: string; username: string }
 
 @Injectable()
 export class AuthService {
@@ -11,9 +10,13 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async generateJWTPayload(userId: MongooseTypes.ObjectId, username: string) {
-    const payload = { sub: userId, username: username }
-    return { access_token: await this.jwtService.signAsync(payload) }
+  async generateJWTPayload(userId: string, username: string) {
+    const payload: authJWTPayload = { id: userId, username: username }
+    return {
+      access_token: await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET,
+      }),
+    }
   }
 
   async singup(body: Body) {
